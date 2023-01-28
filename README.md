@@ -13,3 +13,10 @@ Need Package  'Entities' , 'Entities Graphics' , 'Unity Physics'
 
 'IJobNativeMultiHashMapMergedSharedKeyIndices' :
 https://github.com/Unity-Technologies/EntityComponentSystemSamples/blob/master/EntitiesSamples/Boids/Assets/Scripts/MergeSharedKeyIndicesJob.cs
+
+![ECS1.0-Boids](https://github.com/mshan2923/ECS1.0-Boids/blob/main/ECS1_0Boids100k.gif)
+
+AMD Ryzen 7 4800H ,
+RTX 2080
+
+Test 100k, FPS : 60
