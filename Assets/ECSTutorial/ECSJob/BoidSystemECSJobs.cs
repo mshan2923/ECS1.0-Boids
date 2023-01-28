@@ -44,6 +44,7 @@ namespace Tutorial.Biods
                 ecb.AddComponent<BoidECSJobs>(boidArray[i]);
             }
 
+            //EntityCommandBuffer로 유닛 생성 + 랜덤위치 지정 + BoidECSJobs 태그 추가
         }
         protected override void OnUpdate()
         {
@@ -58,7 +59,6 @@ namespace Tutorial.Biods
 
             // These arrays get deallocated after job completion
             NativeArray<EntityWithLocalToWorld> boidArray = new NativeArray<EntityWithLocalToWorld>(entityArray.Length, Allocator.TempJob);
-            //NativeArray<float3> boidPosition = new NativeArray<float3>(entityArray.Length, Allocator.TempJob);
 
             for (int i = 0; i < entityArray.Length; i++)
             {
@@ -68,7 +68,7 @@ namespace Tutorial.Biods
                     localTransform = localToWorldArray[i],
                     index = i
                 };
-            }
+            }//유닛 정보를 배열로 (엔티티 , 로컬 트렌스폼, 인덱스)
 
             entityArray.Dispose();
             localToWorldArray.Dispose();
@@ -76,7 +76,6 @@ namespace Tutorial.Biods
             BoidJob boidJob = new BoidJob
             {
                 otherBoids = boidArray,
-                //boidPos = boidPosition,
                 boidPerceptionRadius = controller.boidPerceptionRadius,
                 separationWeight = controller.separationWeight,
                 cohesionWeight = controller.cohesionWeight,
@@ -91,6 +90,9 @@ namespace Tutorial.Biods
             var boidHandle = boidJob.ScheduleParallel(Dependency);
             boidHandle.Complete();
 
+
+            //boidJob을 병렬로 실행 시키고 , boidArray을 전부 거리 비교해서 일정 범위 안에 있는것 대상으로 값 더하고
+            // 값들을 평균내서 움직일 속도를 구하고 , 이동시킴
         }
 
         [BurstCompile]
@@ -176,19 +178,6 @@ namespace Tutorial.Biods
             }
         }
 
-        [BurstCompile]
-        private partial struct BoidMoveJob : IJobEntity
-        {
-
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float4x4> newBoidTransforms;
-
-            public void Execute(Entity boid, int boidIndex, [WriteOnly] ref LocalToWorld localToWorld)
-            {
-                localToWorld.Value = newBoidTransforms[boidIndex];
-            }
-        }
-
-
 
         private float3 RandomPosition(BoidControllerECSJobConponent ControllerData)
         {
@@ -198,6 +187,7 @@ namespace Tutorial.Biods
                 UnityEngine.Random.Range(-ControllerData.cageSize / 2f, ControllerData.cageSize / 2f)
             );
         }
+
         private quaternion RandomRotation()
         {
             return quaternion.Euler(

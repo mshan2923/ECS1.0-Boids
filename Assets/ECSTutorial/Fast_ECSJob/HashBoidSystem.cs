@@ -22,7 +22,8 @@ namespace Tutorial.FastBiods
         private HashBiodControllerConponent controller;
 
         EntityCommandBuffer ecb;
-
+        
+#region Job
         // Copies all boid positions and headings into buffer
         [BurstCompile]
         private partial struct CopyPositionsAndHeadingsInBuffer : IJobEntity
@@ -163,6 +164,7 @@ namespace Tutorial.FastBiods
                 };
             }//! cellIndices OutOfLength 
         }
+#endregion
 
         protected override void OnStartRunning()
         {
@@ -190,7 +192,7 @@ namespace Tutorial.FastBiods
                     Rotation = RandomRotation(),//quaternion.identity,
                     Scale = 1
                 });
-                ecb.AddComponent<FastBoidTag>(boidArray[i]);
+                ecb.AddComponent<FastBoidTag>(boidArray[i]);//BoidECSJobsFast >> FastBoidTag
                 ecb.AddComponent<UnitBoidComponent>(boidArray[i], new UnitBoidComponent{index = i});
             }
 
@@ -200,30 +202,33 @@ namespace Tutorial.FastBiods
                 Options = EntityQueryOptions.FilterWriteGroup
             });
 
-            var query = GetEntityQuery(typeof(FastBoidTag));
-            //BoidECSJobsFast >> FastBoidTag
-
-            Debug.Log("boid Amount : " + boidGroup.CalculateEntityCount() + " | " + query.CalculateEntityCount());
+            //var query = GetEntityQuery(typeof(FastBoidTag));
+            //Debug.Log("boid Amount : " + boidGroup.CalculateEntityCount() + " | " + query.CalculateEntityCount() + "\n" + boidGroup.Equals(query));
+            //  ==> 결과 : boid Amount : 0 | 0 \n false
         }
         protected override void OnUpdate()
         {
             if (Enabled == false)
                 return;
 
-                //controller.boidPerceptionRadius 은 Cell영역 범위
-                //CopyPositionsAndHeadingsInBuffer 에서 위치와 방향을 세팅 
+                // controller.boidPerceptionRadius 은 Cell영역 범위
+
+                // CopyPositionsAndHeadingsInBuffer 에서 위치와 방향을 세팅 
                 // hashPositionJobHandle 에서  HashMap을 구성 ,  (방향 * (현위치 + 랜덤방향))을 해쉬화 해서 int로 바꿔 HashMap에 추가
+                //          일정영역안에 있는 유닛들을 같은 해쉬맵 키를 가짐
                 // MergeCellJob 에서 cell안에 유닛 갯수와 위치 , 방향의 합
                 //
 
             int boidCount = boidGroup.CalculateEntityCount();
             if (boidCount == 0)
-            {
+            {                
                 boidGroup = GetEntityQuery(new EntityQueryDesc 
                 {
                     All = new[] { ComponentType.ReadOnly<FastBoidTag>(), ComponentType.ReadWrite<LocalTransform>() },
                     Options = EntityQueryOptions.FilterWriteGroup
                 });
+
+                //boidGroup = GetEntityQuery(typeof(FastBoidTag));//이걸 써도 되는데 위에꺼랑 같진않다고 뜸
                 Debug.Log("boidCount is 0");
                 return;
             }
@@ -241,13 +246,15 @@ namespace Tutorial.FastBiods
             JobHandle positionAndHeadingsCopyJobHandle = positionsAndHeadingsCopyJob.ScheduleParallel(boidGroup, Dependency);
 
 
-            quaternion randomHashRotation = quaternion.Euler(
+            quaternion randomHashRotation = quaternion.Euler
+            (
                 UnityEngine.Random.Range(-360f, 360f),
                 UnityEngine.Random.Range(-360f, 360f),
                 UnityEngine.Random.Range(-360f, 360f)
             );
             float offsetRange = controller.boidPerceptionRadius / 2f;
-            float3 randomHashOffset = new float3(
+            float3 randomHashOffset = new float3
+            (
                 UnityEngine.Random.Range(-offsetRange, offsetRange),
                 UnityEngine.Random.Range(-offsetRange, offsetRange),
                 UnityEngine.Random.Range(-offsetRange, offsetRange)
@@ -310,7 +317,7 @@ namespace Tutorial.FastBiods
                 //cellIndices.Dispose();
                 //cellBoidCount.Dispose();
                 //boidPositions.Dispose();
-                //boidHeadings.Dispose();
+                //boidHeadings.Dispose();// MoveJob에서 [DeallocateOnJobCompletion] 때문에 할당해제 된듯
                 hashMap.Dispose();
             }
 
