@@ -11,3 +11,5 @@ version : 2022.2.4
 Need Package  'Entities' , 'Entities Graphics' , 'Unity Physics'
 (Pre-release Package)
 
+'IJobNativeMultiHashMapMergedSharedKeyIndices' :
+https://github.com/Unity-Technologies/EntityComponentSystemSamples/blob/master/EntitiesSamples/Boids/Assets/Scripts/MergeSharedKeyIndicesJob.cs
