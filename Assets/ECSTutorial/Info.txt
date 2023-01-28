@@ -1,0 +1,10 @@
+ECSJob은 IJobForEachWithEntity 가 없어져서.... 19번 튜토로 고침
+
+
+ Source : https://github.com/BadGraphixD/How-many-Boids-can-Unity-handle
+            https://www.youtube.com/watch?v=mNZq0RhM-98
+
+ ECS  버전은 안되서.. Entities.Foreach() 에서 외부 로컬변수 접근 불가
+
+
+
